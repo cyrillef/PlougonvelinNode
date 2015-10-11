@@ -23,6 +23,7 @@ var request =require ('request') ;
 var bodyParser =require ('body-parser') ;
 var favicon =require ('serve-favicon') ;
 //var logger =require ('morgan') ;
+var async =require ('async') ;
 var bonescript =require ('bonescript') ;
 
 // http://garann.github.io/template-chooser/
@@ -40,19 +41,21 @@ app.use ('/', require ('./pages')) ;
 var housedef =require ('./house-def') ;
 
 triggerVolet =function (volet, repeat, cb) {
-	bonescript.digitalWrite (volet, bonescript.LOW) ;
-	setTimeout (
-		function () {
-			bonescript.digitalWrite (volet, bonescript.HIGH) ;
-			if ( repeat > 1 )
-				setTimeout (function () {
-					triggerVolet (volet, repeat - 1, cb) ;
-				}, 50) ;
-			else if ( cb )
-				cb (volet) ;
-		},
-		100
-	) ;
+	bonescript.digitalWrite (volet, bonescript.LOW, function (pinR) {
+		setTimeout (
+			function () {
+				bonescript.digitalWrite (volet, bonescript.HIGH, function (pinR) {
+					if ( repeat > 1 )
+						setTimeout (function () {
+							triggerVolet (volet, repeat - 1, cb) ;
+						}, 50) ;
+					else if ( cb )
+						cb (volet) ;
+				}) ;
+			},
+			100
+		) ;
+	}) ;
 } ;
 
 voletCommand =function (voletid, cmd, cb) {
@@ -90,8 +93,21 @@ app.get ('/volet/:room/:name/:cmd', function (req, res) {
 
 roomCentral =function (room, cmd, cb) {
 	var volets =housedef.rooms [room] ;
-	for ( var i =0 ; i < volets.length ; i++ )
-		voletCommand (volets [i], cmd, cb) ;
+	//for ( var i =0 ; i < volets.length ; i++ )
+	//	voletCommand (volets [i], cmd, cb) ;
+	var count =0 ;
+	async.whilst (
+		function () { return (count < volets.length) ; },
+		function (callback) {
+			voletCommand (volets [count++], cmd, function (volet) {
+				callback ()
+			}) ;
+		},
+		function (err) {
+			if ( cb )
+				cb (room) ;
+		}
+	) ;
 } ;
 
 app.get ('/room/:room/:cmd', function (req, res) {
@@ -103,8 +119,21 @@ app.get ('/room/:room/:cmd', function (req, res) {
 
 floorCentral =function (floor, cmd, cb) {
 	var rooms =housedef.floors [floor] ;
-	for ( var i =0 ; i < rooms.length ; i++ )
-		roomCentral (rooms [i], cmd, cb) ;
+	//for ( var i =0 ; i < rooms.length ; i++ )
+	//	roomCentral (rooms [i], cmd, cb) ;
+	var count =0 ;
+	async.whilst (
+		function () { return (count < rooms.length) ; },
+		function (callback) {
+			roomCentral (rooms [count++], cmd, function (room) {
+				callback ()
+			}) ;
+		},
+		function (err) {
+			if ( cb )
+				cb (floor) ;
+		}
+	) ;
 } ;
 
 app.get ('/floor/:floor/:cmd', function (req, res) {
