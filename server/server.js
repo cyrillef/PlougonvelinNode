@@ -24,7 +24,7 @@ var bodyParser =require ('body-parser') ;
 var favicon =require ('serve-favicon') ;
 //var logger =require ('morgan') ;
 var async =require ('async') ;
-var bonescript =require ('bonescript') ;
+//var bonescript =require ('bonescript') ;
 
 // http://garann.github.io/template-chooser/
 var app =express () ;
@@ -41,21 +41,21 @@ app.use ('/', require ('./pages')) ;
 var housedef =require ('./house-def') ;
 
 triggerVolet =function (volet, repeat, cb) {
-	bonescript.digitalWrite (volet, bonescript.LOW, function (pinR) {
-		setTimeout (
-			function () {
-				bonescript.digitalWrite (volet, bonescript.HIGH, function (pinR) {
-					if ( repeat > 1 )
-						setTimeout (function () {
-							triggerVolet (volet, repeat - 1, cb) ;
-						}, 50) ;
-					else if ( cb )
-						cb (volet) ;
-				}) ;
-			},
-			100
-		) ;
-	}) ;
+	//bonescript.digitalWrite (volet, bonescript.LOW, function (pinR) {
+	//	setTimeout (
+	//		function () {
+	//			bonescript.digitalWrite (volet, bonescript.HIGH, function (pinR) {
+	//				if ( repeat > 1 )
+	//					setTimeout (function () {
+	//						triggerVolet (volet, repeat - 1, cb) ;
+	//					}, 50) ;
+	//				else if ( cb )
+	//					cb (volet) ;
+	//			}) ;
+	//		},
+	//		100
+	//	) ;
+	//}) ;
 } ;
 
 voletCommand =function (voletid, cmd, cb) {

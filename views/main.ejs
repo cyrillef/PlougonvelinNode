@@ -9,8 +9,8 @@
                 </div>
             </div>
 
-            <% for ( var room in def.rooms ) {
-                var volets =def.rooms [room] ;
+            <% for ( var room in def.rooms () ) {
+                var volets =def.rooms () [room] ;
                 //console.log ('room =' + room) ;
                 %>
             <div class="row">
@@ -48,7 +48,7 @@
                             <% for ( var iv =0 ; iv < volets.length ; iv++ ) {
                                 var voletid =volets [iv] ;
                                 //console.log ('voletid =' + voletid) ;
-                                var volet =def.cmds [voletid] ;
+                                var volet =def.cmds () [voletid] ;
                                 //console.log ('volet =' + JSON.stringify(volet)) ;
                                 %>
                             <div class="row">

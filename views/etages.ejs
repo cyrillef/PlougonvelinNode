@@ -8,8 +8,8 @@
         </div>
     </div>
 
-    <% for ( var floor in def.floors ) {
-        var rooms =def.floors [floor] ;
+    <% for ( var floor in def.floors () ) {
+        var rooms =def.floors () [floor] ;
     %>
     <div class="row">
         <div class="col-md-8">

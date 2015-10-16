@@ -1,0 +1,125 @@
+
+<%- include html.ejs %>
+<body>
+    <%- include header.ejs %>
+
+    <script>
+        var model =function () {
+            var self =this ;
+            this.DigitalPins =ko.observableArray (<%- JSON.stringify (def.DigitalPins ()) %>) ;
+        } ;
+        $(document).ready (function () {
+            ko.applyBindings (new model ()) ;
+        }) ;
+    </script>
+
+    <% for ( var room in def.rooms () ) {
+    %>
+    <div class="row">
+        <div class="col-md-8">
+            <div class="panel panel-primary">
+                <div class="panel-heading">
+                    <button id="<%= room %>" class="panel-title-command" data-toggle="modal" data-target="#myModal">+</button>
+                    <h3 class="panel-title"><i class="fa fa-bar-chart-o"></i> <%= room %></h3>
+                </div>
+                <div class="panel-body">
+                    <div class="row">
+                        <div class="col-lg-4">
+                            <div class="panel panel-default">
+                                <div class="panel-body">&nbsp;</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+        </div>
+    </div>
+    <% } %>
+
+    <%- include footer.ejs %>
+
+    <!-- New room command -->
+    <div id="myModal" class="modal fade" role="dialog">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title">New command</h4>
+                </div>
+                <div class="modal-body">
+                    <form role="form" data-async data-target="#myModal" action="/some-endpoint" method="post" id="commandForm">
+                        <div class="form-group">
+                            <label for="name">Name:</label>
+                            <input type="text" class="form-control" id="name">
+                        </div>
+                        <div>
+                            <ul class="nav nav-tabs" role="tablist" id="options">
+                                <li role="presentation" class="active"><a href="#volet" aria-controls="volet" role="tab" data-toggle="tab">Volet</a></li>
+                                <li role="presentation"><a href="#lumiere" aria-controls="lumiere" role="tab" data-toggle="tab">Lumiere</a></li>
+                                <li role="presentation"><a href="#camera" aria-controls="camera" role="tab" data-toggle="tab">Camera</a></li>
+                            </ul>
+                            <div class="tab-content">
+                                <div role="tabpanel" class="tab-pane active" id="volet">
+                                    <div class="form-group">
+                                        <label for="vopen">Ouverture:</label>
+                                        <select class="form-control" id="vopen" data-bind="options: DigitalPins"></select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="vclose">Fermeture:</label>
+                                        <select class="form-control" id="vclose" data-bind="options: DigitalPins"></select>
+                                    </div>
+                                </div>
+                                <div role="tabpanel" class="tab-pane" id="lumiere">
+
+                                </div>
+                                <div role="tabpanel" class="tab-pane" id="camera">
+
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                            <button type="submit" class="btn btn-primary">Create</button>
+                        </div>
+                    </form>
+                    <script>
+                        $(document).ready (function () {
+                            $('#commandForm').on ('submit', function (event) {
+                                event.preventDefault () ;
+                                var $form =$(this) ;
+                                var $target =$($form.attr ('data-target')) ;
+                                var formData ={
+                                    'name': $('input[id=name]').val(),
+                                    'option': $('ul[id=options] li.active a').attr ('aria-controls')
+                                } ;
+                                switch ( formData.option ) {
+                                    case 'volet':
+                                        formData.open =$('select[id=vopen]').val () ;
+                                        formData.close =$('select[id=vclose]').val () ;
+                                        break ;
+                                }
+                                //$.ajax ({
+                                //    type: $form.attr ('method'),
+                                //    url: $form.attr ('action'),
+                                //    data: formData,
+                                //    dataType: 'json'
+                                //}).done (function (data) {
+                                $.post ($form.attr ('action'), formData, function (data, status) {
+                                    console.log (data) ;
+                                }).fail (function (data) {
+                                    console.log (data) ;
+                                }) ;
+                                return (false) ;
+                            }) ;
+                        }) ;
+                    </script>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>
