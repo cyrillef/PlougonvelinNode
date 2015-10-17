@@ -24,7 +24,7 @@ var bodyParser =require ('body-parser') ;
 var favicon =require ('serve-favicon') ;
 //var logger =require ('morgan') ;
 var async =require ('async') ;
-//var bonescript =require ('bonescript') ;
+var boneimpl =require ('./boneimpl') ;
 
 // http://garann.github.io/template-chooser/
 var app =express () ;
@@ -40,66 +40,47 @@ app.use ('/', require ('./pages')) ;
 //- Commands
 var housedef =require ('./house-def') ;
 
-triggerVolet =function (volet, repeat, cb) {
-	//bonescript.digitalWrite (volet, bonescript.LOW, function (pinR) {
-	//	setTimeout (
-	//		function () {
-	//			bonescript.digitalWrite (volet, bonescript.HIGH, function (pinR) {
-	//				if ( repeat > 1 )
-	//					setTimeout (function () {
-	//						triggerVolet (volet, repeat - 1, cb) ;
-	//					}, 50) ;
-	//				else if ( cb )
-	//					cb (volet) ;
-	//			}) ;
-	//		},
-	//		100
-	//	) ;
-	//}) ;
-} ;
-
-voletCommand =function (voletid, cmd, cb) {
-	var pin =housedef.cmds [voletid].pins [cmd] ;
-	var repeat =1 ;
-	if ( pin.constructor === Array ) {
-		repeat =pin [1] ;
-		pin =pin [0] ;
+var shutterCommand =function (shutter, cmd, cb) {
+	var pin =shutter [cmd === 'half' ? 'close' : cmd] ;
+	if ( pin === undefined || pin === '' ) {
+		if ( cb )
+			cb (shutter) ;
+		return ;
 	}
-	triggerVolet (pin, repeat, cb) ;
+	//console.log (cmd + ' "' + pin + '"') ;
+	var repeat =(cmd === 'half' ? 2 : 1) ;
+	boneimpl.triggerShutter (pin, repeat, cb) ;
 } ;
 
-roomVoletCommand =function (room, name, cmd, cb) {
-	var volets =housedef.rooms [room] ;
-	var results =volets.filter (function (volet) {
-		return (housedef.cmds [volet].name == name) ;
-	}) ;
-	voletCommand (results [0], cmd, cb) ;
+var roomShutterCommand =function (roomid, nameid, cmd, cb) {
+	var room =housedef.roomNameFromId (roomid) ;
+	var shutters =housedef.rooms () [room] ;
+	//var name =housedef.roomCmdFromId (room, nameid) [1] ;
+	//var results =shutters.filter (function (shutter) { return (shutter.name == name) ; }) ;
+	//shutterCommand (results [0], cmd, cb) ;
+	var index =housedef.roomCmdFromId (room, nameid) [0] ;
+	var shutter =shutters [index] ;
+	shutterCommand (shutter, cmd, cb) ;
 } ;
 
-app.get ('/volet/:voletid/:cmd', function (req, res) {
-	var voletid =req.params.voletid ;
-	var cmd =parseInt (req.params.cmd) ;
-	voletCommand (voletid, cmd, null) ;
+app.get ('/room/:roomid/:nameid/:cmd', function (req, res) {
+	var roomid =req.params.roomid ;
+	var nameid =req.params.nameid ;
+	var cmd =req.params.cmd ;
+	roomShutterCommand (roomid, nameid, cmd, null) ;
 	res.end () ;
 }) ;
 
-app.get ('/volet/:room/:name/:cmd', function (req, res) {
-	var room =req.params.room ;
-	var name =req.params.name ;
-	var cmd =parseInt (req.params.cmd) ;
-	roomVoletCommand (room, name, cmd, null) ;
-	res.end () ;
-}) ;
-
-roomCentral =function (room, cmd, cb) {
-	var volets =housedef.rooms [room] ;
-	//for ( var i =0 ; i < volets.length ; i++ )
-	//	voletCommand (volets [i], cmd, cb) ;
+var roomCentral =function (roomid, cmd, cb) {
+	var room =housedef.roomNameFromId (roomid) ;
+	var shutters =housedef.rooms () [room] || [] ;
+	//for ( var i =0 ; i < shutters.length ; i++ )
+	//	shutterCommand (shutters [i], cmd, cb) ;
 	var count =0 ;
 	async.whilst (
-		function () { return (count < volets.length) ; },
+		function () { return (count < shutters.length) ; },
 		function (callback) {
-			voletCommand (volets [count++], cmd, function (volet) {
+			shutterCommand (shutters [count++], cmd, function (shutter) {
 				callback ()
 			}) ;
 		},
@@ -110,22 +91,24 @@ roomCentral =function (room, cmd, cb) {
 	) ;
 } ;
 
-app.get ('/room/:room/:cmd', function (req, res) {
-	var room =req.params.room ;
-	var cmd =parseInt (req.params.cmd) ;
-	roomCentral (room, cmd, null) ;
+app.get ('/room/:roomid/:cmd', function (req, res) {
+	var roomid =req.params.roomid ;
+	var cmd =req.params.cmd ;
+	roomCentral (roomid, cmd, null) ;
 	res.end () ;
 }) ;
 
-floorCentral =function (floor, cmd, cb) {
-	var rooms =housedef.floors [floor] ;
+var floorCentral =function (floorid, cmd, cb) {
+	var floor =housedef.floorNameFromId (floorid) ;
+	var rooms =housedef.floors () [floor] || [] ;
 	//for ( var i =0 ; i < rooms.length ; i++ )
 	//	roomCentral (rooms [i], cmd, cb) ;
 	var count =0 ;
 	async.whilst (
 		function () { return (count < rooms.length) ; },
 		function (callback) {
-			roomCentral (rooms [count++], cmd, function (room) {
+			var roomid =rooms [count++].replace (/\W/g, '') ;
+			roomCentral (roomid, cmd, function (room) {
 				callback ()
 			}) ;
 		},
@@ -136,10 +119,35 @@ floorCentral =function (floor, cmd, cb) {
 	) ;
 } ;
 
-app.get ('/floor/:floor/:cmd', function (req, res) {
-	var floor =req.params.floor ;
-	var cmd =parseInt (req.params.cmd) ;
-	floorCentral (floor, cmd, null) ;
+app.get ('/floor/:floorid/:cmd', function (req, res) {
+	var floorid =req.params.floorid ;
+	var cmd =req.params.cmd ;
+	floorCentral (floorid, cmd, null) ;
+	res.end () ;
+}) ;
+
+//- Setup
+app.post ('/setup/create', function (req, res) {
+	var data =req.body ; // room, roomid, name, nameid, option, prefix
+	housedef.roomCreate (data, function (err, result) {
+		if ( err )
+			return (res.status (500).end ()) ;
+		res.json (result) ;
+	}) ;
+}) ;
+
+app.post ('/setup/assign', function (req, res) {
+	var data =req.body ; // id=rooid-nameid-shutter-cmd, pin
+	housedef.roomAssign (data, function (err, result) {
+		if ( err )
+			return (res.status (500).end ()) ;
+		res.json (result) ;
+	}) ;
+}) ;
+
+app.get ('/setup/test', function (req, res) {
+	var pin =req.query.pin ;
+	boneimpl.triggerShutter (pin, 1, null) ;
 	res.end () ;
 }) ;
 

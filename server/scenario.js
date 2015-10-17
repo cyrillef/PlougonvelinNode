@@ -22,7 +22,6 @@ var express =require ('express') ;
 var request =require ('request') ;
 var schedule =require ('node-schedule') ;
 var unirest =require ('unirest') ;
-//var bonescript =require ('bonescript') ;
 
 // *     *     *     *    *     *
 // ┬    ┬    ┬    ┬    ┬    ┬
@@ -36,36 +35,36 @@ var unirest =require ('unirest') ;
 
 var scenarie ={
 	'Ete': {
-		'00 09 * * *': '/floor/Maison/1',
-		'30 22 * * *': '/floor/Maison/0',
+		'00 09 * * *': '/floor/Maison/open',
+		'30 22 * * *': '/floor/Maison/close',
 
-		'*/15 * * * * *': '/floor/Bureau/Nord/0'
-		//'30 10 * * *': '/volet/Lucille/Est/0',
-		//'30 13 * * *': '/volet/Pauline/Sud/0',
-		//'30 13 * * *': '/volet/Lucille/Ouest/1',
-		//'00 14 * * *': '/volet/Pauline/Ouest/0',
-		//'00 14 * * *': '/volet/Marie/Ouest/0',
-		//'30 14 * * *': '/volet/Salon/Ouest/2'
+		'*/15 * * * * *': '/floor/Bureau/Nord/close'
+		//'30 10 * * *': '/shutter/Lucille/Est/close',
+		//'30 13 * * *': '/shutter/Pauline/Sud/close',
+		//'30 13 * * *': '/shutter/Lucille/Ouest/open',
+		//'00 14 * * *': '/shutter/Pauline/Ouest/close',
+		//'00 14 * * *': '/shutter/Marie/Ouest/close',
+		//'30 14 * * *': '/shutter/Salon/Ouest/half'
 	},
 	'Hiver': {
-		'05 09 * * *': '/floor/Maison/1',
-		'30 19 * * *': '/floor/Maison/0'
+		'05 09 * * *': '/floor/Maison/open',
+		'30 19 * * *': '/floor/Maison/close'
 	},
 	'Vacances': {
-		'08 09 * * 1': '/floor/Maison/1',
-		'32 21 * * 1': '/floor/Maison/0',
-		'17 09 * * 2': '/floor/Maison/1',
-		'47 21 * * 2': '/floor/Maison/0',
-		'03 09 * * 3': '/floor/Maison/1',
-		'02 21 * * 3': '/floor/Maison/0',
-		'53 08 * * 4': '/floor/Maison/1',
-		'03 22 * * 4': '/floor/Maison/0',
-		'08 09 * * 5': '/floor/Maison/1',
-		'31 21 * * 5': '/floor/Maison/0',
-		'05 09 * * 6': '/floor/Maison/1',
-		'33 22 * * 6': '/floor/Maison/0',
-		'05 10 * * 7': '/floor/Maison/1',
-		'30 21 * * 7': '/floor/Maison/0'
+		'08 09 * * 1': '/floor/Maison/open',
+		'32 21 * * 1': '/floor/Maison/close',
+		'17 09 * * 2': '/floor/Maison/open',
+		'47 21 * * 2': '/floor/Maison/close',
+		'03 09 * * 3': '/floor/Maison/open',
+		'02 21 * * 3': '/floor/Maison/close',
+		'53 08 * * 4': '/floor/Maison/open',
+		'03 22 * * 4': '/floor/Maison/close',
+		'08 09 * * 5': '/floor/Maison/open',
+		'31 21 * * 5': '/floor/Maison/close',
+		'05 09 * * 6': '/floor/Maison/open',
+		'33 22 * * 6': '/floor/Maison/close',
+		'05 10 * * 7': '/floor/Maison/open',
+		'30 21 * * 7': '/floor/Maison/close'
 	}
 } ;
 

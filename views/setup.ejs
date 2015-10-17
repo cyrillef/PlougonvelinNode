@@ -4,32 +4,106 @@
     <%- include header.ejs %>
 
     <script>
+        var pins =<%- JSON.stringify (def.DigitalPins ()) %> ;
         var model =function () {
             var self =this ;
-            this.DigitalPins =ko.observableArray (<%- JSON.stringify (def.DigitalPins ()) %>) ;
+            this.DigitalPins =ko.observableArray (pins) ;
         } ;
+        var dataModel =null ;
         $(document).ready (function () {
-            ko.applyBindings (new model ()) ;
+            dataModel =new model () ;
+            ko.applyBindings (dataModel) ;
+
+            $("#myModal").on ('show.bs.modal', function (evt) {
+                var button =$(evt.relatedTarget) ; // Get button that triggered the modal
+                var title =button.data ('title') ; // Extract value from data-* attributes
+                $(this).find ('.modal-title').text ('New Command for ' + title) ;
+                $(this).data ('title', title) ;
+                var id =button.attr ('id') ;
+                $(this).data ('id', id) ;
+                //$('#name').attr ('value', '') ;
+            }) ;
+
+            var panel =$('#DigitalPins_panel') ;
+            for ( var i =0 ; i < pins.length ; i++ ) {
+                panel.append (
+                    '<button id="test-' + pins [i] + '" class="btn btn-xs btn-danger" style="margin: 3px;">' + pins [i] + '</button>'
+                ) ;
+            }
+            $('button[id^=test-]').click (function (evt) {
+                var button =$(evt.toElement) ;
+                var pin =button.attr ('id').substring (5) ;
+                $.get ('/setup/test', { 'pin': pin }, function (data, status) {
+                    console.log (data) ;
+                }).fail (function (data) {
+                    console.log (data) ;
+                }) ;
+            }) ;
+
+            $('select[id$=-shutter-open], select[id$=-shutter-close]').on ('change', function (evt) {
+                var select =$(evt.currentTarget) ;
+                var id =select.attr ('id') ;
+                var pin =select.val () ;
+                $.post ('/setup/assign', { 'id': id, 'pin': pin }, function (data, status) {
+                    console.log (data) ;
+                }).fail (function (data) {
+                    console.log (data) ;
+                }) ;
+            }) ;
         }) ;
     </script>
 
+    <div class="row">
+        <div class="col-md-8">
+            <div class="panel panel-primary">
+                <div class="panel-heading">
+                    <h3 class="panel-title"><i class="fa fa-bar-chart-o"></i> Digital Pin Test</h3>
+                </div>
+                <div class="panel-body">
+                    <div class="row" id="DigitalPins_panel"></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+        </div>
+    </div>
+
     <% for ( var room in def.rooms () ) {
+        var roomid =room.replace (/\W/g, '') ;
+        var cmds =def.rooms () [room] ;
     %>
     <div class="row">
         <div class="col-md-8">
             <div class="panel panel-primary">
                 <div class="panel-heading">
-                    <button id="<%= room %>" class="panel-title-command" data-toggle="modal" data-target="#myModal">+</button>
+                    <button id="<%= roomid %>" data-title="<%= room %>" class="panel-title-command" data-toggle="modal" data-target="#myModal">+</button>
                     <h3 class="panel-title"><i class="fa fa-bar-chart-o"></i> <%= room %></h3>
                 </div>
-                <div class="panel-body">
+                <div class="panel-body" id="<%= roomid %>_panel">
+                    <% for ( var i =0 ; i < cmds.length ; i++ ) {
+                        var nameid =cmds [i].name.replace (/\W/g, '') ;
+                        var prefix =roomid + '-' + nameid ;
+                    %>
                     <div class="row">
                         <div class="col-lg-4">
                             <div class="panel panel-default">
-                                <div class="panel-body">&nbsp;</div>
+                                <div class="panel-body"><%= cmds [i].name %></div>
+                            </div>
+                        </div>
+                        <div class="form-inline col-lg-8">
+                            <div class="form-group col-lg-4">
+                                <label class="control-label col-xs-4" for="<%= prefix %>-shutter-open">Open:</label>
+                                <select class="form-control col-xs-8" id="<%= prefix %>-shutter-open"
+                                        data-bind="options: DigitalPins, value: '<%= cmds [i].open %>'"></select>
+                            </div>
+                            <div class="form-group col-lg-4">
+                                <label class="control-label col-xs-4" for="<%= prefix %>-shutter-close">Close:</label>
+                                <select class="form-control col-xs-8" id="<%= prefix %>-shutter-close"
+                                        data-bind="options: DigitalPins, value: '<%= cmds [i].close %>'"></select>
                             </div>
                         </div>
                     </div>
+                    <% } %>
                 </div>
             </div>
         </div>
@@ -49,34 +123,23 @@
                     <h4 class="modal-title">New command</h4>
                 </div>
                 <div class="modal-body">
-                    <form role="form" data-async data-target="#myModal" action="/some-endpoint" method="post" id="commandForm">
+                    <form role="form" data-async data-target="#myModal" action="/setup/create" method="post" id="commandForm">
                         <div class="form-group">
                             <label for="name">Name:</label>
-                            <input type="text" class="form-control" id="name">
+                            <input type="text" class="form-control" id="name" />
                         </div>
-                        <div>
-                            <ul class="nav nav-tabs" role="tablist" id="options">
-                                <li role="presentation" class="active"><a href="#volet" aria-controls="volet" role="tab" data-toggle="tab">Volet</a></li>
-                                <li role="presentation"><a href="#lumiere" aria-controls="lumiere" role="tab" data-toggle="tab">Lumiere</a></li>
-                                <li role="presentation"><a href="#camera" aria-controls="camera" role="tab" data-toggle="tab">Camera</a></li>
-                            </ul>
-                            <div class="tab-content">
-                                <div role="tabpanel" class="tab-pane active" id="volet">
-                                    <div class="form-group">
-                                        <label for="vopen">Ouverture:</label>
-                                        <select class="form-control" id="vopen" data-bind="options: DigitalPins"></select>
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="vclose">Fermeture:</label>
-                                        <select class="form-control" id="vclose" data-bind="options: DigitalPins"></select>
-                                    </div>
-                                </div>
-                                <div role="tabpanel" class="tab-pane" id="lumiere">
-
-                                </div>
-                                <div role="tabpanel" class="tab-pane" id="camera">
-
-                                </div>
+                        <div class="form-group">
+                            <label for="name">Option:</label>
+                            <div class="btn-group" data-toggle="buttons">
+                                <label class="btn btn-primary active">
+                                    <input type="radio" name="option" id="shutter" autocomplete="off" checked /> Roller Shutter
+                                </label>
+                                <label class="btn btn-primary">
+                                    <input type="radio" name="option" id="light" autocomplete="off" /> Light
+                                </label>
+                                <label class="btn btn-primary">
+                                    <input type="radio" name="option" id="camera" autocomplete="off" /> Camera
+                                </label>
                             </div>
                         </div>
                         <div class="modal-footer">
@@ -91,13 +154,38 @@
                                 var $form =$(this) ;
                                 var $target =$($form.attr ('data-target')) ;
                                 var formData ={
-                                    'name': $('input[id=name]').val(),
-                                    'option': $('ul[id=options] li.active a').attr ('aria-controls')
+                                    'room': $form.parent ().parent ().parent ().parent ().data ('title'),
+                                    'roomid': $form.parent ().parent ().parent ().parent ().data ('id'),
+                                    'name': $('input[id=name]').val (),
+                                    'option': $('input[name=option]').attr ('id')
                                 } ;
+                                formData.nameid =formData.name.replace (/\W/g, '') ;
+                                formData.prefix =formData.roomid + '-' + formData.nameid ;
+
+                                var panel =$('#' + formData.roomid + '_panel') ;
                                 switch ( formData.option ) {
-                                    case 'volet':
-                                        formData.open =$('select[id=vopen]').val () ;
-                                        formData.close =$('select[id=vclose]').val () ;
+                                    case 'shutter':
+                                        panel.append (
+                                              '<div class="row">'
+                                            + '<div class="col-lg-4">'
+                                            + '<div class="panel panel-default">'
+                                            + '<div class="panel-body">' + formData.name + '</div>'
+                                            + '</div>'
+                                            + '</div>'
+                                            + '<div class="form-inline col-lg-8">'
+                                            + '<div class="form-group col-lg-4">'
+                                            + '<label class="control-label col-xs-4" for="' + formData.prefix + '-shutter-open">Open:</label>'
+                                            + '<select class="form-control col-xs-8" id="' + formData.prefix + '-shutter-open" data-bind="options: DigitalPins"></select>'
+                                            + '</div>'
+                                            + '<div class="form-group col-lg-4">'
+                                            + '<label class="control-label col-xs-4" for="' + formData.prefix + '-shutter-close">Close:</label>'
+                                            + '<select class="form-control col-xs-8" id="' + formData.prefix + '-shutter-close" data-bind="options: DigitalPins"></select>'
+                                            + '</div>'
+                                            + '</div>'
+                                            + '</div>'
+                                        ) ;
+                                        ko.applyBindingsToNode ($('#' + formData.prefix + '-shutter-open') [0], { options: dataModel.DigitalPins }) ;
+                                        ko.applyBindingsToNode ($('#' + formData.prefix + '-shutter-close') [0], { options: dataModel.DigitalPins }) ;
                                         break ;
                                 }
                                 //$.ajax ({
@@ -111,12 +199,12 @@
                                 }).fail (function (data) {
                                     console.log (data) ;
                                 }) ;
+                                $('#myModal').modal ('hide') ;
                                 return (false) ;
                             }) ;
                         }) ;
                     </script>
                 </div>
-
             </div>
         </div>
     </div>

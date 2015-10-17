@@ -9,7 +9,7 @@
     </div>
 
     <% for ( var floor in def.floors () ) {
-        var rooms =def.floors () [floor] ;
+        var floorid =floor.replace (/\W/g, '') ;
     %>
     <div class="row">
         <div class="col-md-8">
@@ -24,34 +24,30 @@
                                 <div class="panel-body">&nbsp;</div>
                             </div>
                         </div>
-                        <button id="<%= floor %>_1" type="button" class="btn btn-primary btn-lg btn-success">Ouvrir</button>
-                        <button id="<%= floor %>_2" type="button" class="btn btn-primary btn-lg btn-warning">a demi</button>
-                        <button id="<%= floor %>_0" type="button" class="btn btn-primary btn-lg btn-danger">Fermer</button>
+                        <button id="<%= floorid %>-shutter-open" type="button" class="btn btn-primary btn-lg btn-success">Ouvrir</button>
+                        <button id="<%= floorid %>-shutter-half" type="button" class="btn btn-primary btn-lg btn-warning">a demi</button>
+                        <button id="<%= floorid %>-shutter-close" type="button" class="btn btn-primary btn-lg btn-danger">Fermer</button>
                     </div>
-                    <script>
-                        <% for ( var ip =0 ; ip <= 2 ; ip++ ) { %>
-                        $('#<%= floor %>_<%= ip %>').click (function (evt) {
-                            evt.stopPropagation () ;
-                            $.ajax ({
-                                url: 'http://' + window.location.host + '/floor/<%= floor %>/<%= ip %>',
-                                type: 'get',
-                                //data: JSON.stringify ({}),
-                                //contentType: 'application/json',
-                                complete: null
-                            }).done (function (data) {
-                            }) ;
-                        }) ;
-                        <% } %>
-                    </script>
-
                 </div>
             </div>
         </div>
-        <div class="col-md-4">
-
-        </div>
+        <div class="col-md-4"></div>
     </div>
     <% } %>
+
+    <script>
+        $(document).ready (function () {
+            $ ('button[id*=-shutter-]').click (function (evt) {
+                var button =$(evt.toElement) ;
+                var ids =button.attr ('id').split ('-') ;
+                $.get ('/floor/' + ids [0] + '/' + ids [ids.length - 1], function (data, status) {
+                    console.log (data) ;
+                }).fail (function (data) {
+                    console.log (data) ;
+                }) ;
+            }) ;
+        }) ;
+    </script>
 
     <%- include footer.ejs %>
 </body>

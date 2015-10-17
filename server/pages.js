@@ -21,7 +21,6 @@
 var express =require ('express') ;
 var router =express.Router () ;
 var fs =require ('fs') ;
-//var bonescript =require ('bonescript') ;
 
 var housedef =require ('./house-def') ;
 var scenario =require ('./scenario') ;

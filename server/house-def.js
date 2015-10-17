@@ -20,41 +20,18 @@
 //
 var express =require ('express') ;
 var request =require ('request') ;
-//var bonescript =require ('bonescript') ;
 var fs =require ('fs') ;
+var boneimpl =require ('./boneimpl') ;
 
-var LEDs =[], AnalogPins =[], DigitalPins =[] ;
-var floors ={}, rooms ={}, cmds ={} ;
-//var cmds ={ v1: { pins: [ 'P8_8', 'P8_7', [ 'P8_8', 2 ] ], name: 'Nord' }, ... } ;
+var floors ={}, rooms ={} ;
+// rooms {
+// 	"Bureau": [
+//		{ type: 'shutter', open: 'pin', close: 'pin', name: 'name' }
+//		{ type: 'light', switch: 'pin', name: 'name' }
+// 	]
+// }
 
-// P8 7-19 / 26-36 - (13) / (11) = 24
-// P9 11-18 / 21-27 / 30 / 41-42 - (8) / (7) / (1) / (2) = 18
-
-var initPins =function () {
-	for ( var p =0 ; p < DigitalPins.length ; p++ ) {
-		var pin =DigitalPins [p] ;
-		bonescript.pinMode (pin, bonescript.OUTPUT, 7, 'pullup', 'fast', function (pinR) {
-			bonescript.digitalWrite (pin, bonescript.HIGH) ;
-		}) ;
-	}
-}
 var init =function () {
-	fs.readFile ('./data/DigitalPins.json', function (err, data) {
-		if ( err )
-			return (console.log ('Cannot read DigitalPins definition file')) ;
-		DigitalPins =JSON.parse (data) ;
-		//initPins () ;
-	}) ;
-	fs.readFile ('./data/AnalogPins.json', function (err, data) {
-		if ( err )
-			return (console.log ('Cannot read AnalogPins definition file')) ;
-		AnalogPins =JSON.parse (data) ;
-	}) ;
-	//fs.readFile ('../data/LEDs.json', function (err, data) {
-	//	if ( err )
-	//		return (console.log ('Cannot read LEDs definition file')) ;
-	//	LEDs =JSON.parse (data) ;
-	//}) ;
 	fs.readFile ('./data/floors.json', function (err, data) {
 		if ( err )
 			return (console.log ('Cannot read floors definition file')) ;
@@ -63,13 +40,102 @@ var init =function () {
 		rooms2 =[].concat.apply ([], [].concat.apply ([], rooms2)) ;
 		rooms2 =rooms2.filter (function (item, i, ar) { return (ar.indexOf (item) === i) ; }) ;
 		rooms =rooms2.reduce (function (previousValue, value, index) { previousValue [value] =[] ; return (previousValue) ; }, {}) ;
+
+		for ( var room in rooms ) {
+			var roomLoad =function (roomName) {
+				var roomid =roomName.replace (/\W/g, '') ;
+				fs.readFile (
+					'./data/' + roomid + '.json',
+					function (err, buffer) {
+						if ( err )
+							return ;
+						rooms [roomName] =JSON.parse (buffer) ;
+					}) ;
+			} ;
+			roomLoad (room) ;
+		}
 	}) ;
 } ;
 init () ;
 
+var roomCreate =function (data, cb) {
+	// rooms {
+	// 	"Bureau": [
+	//		{ type: 'shutter', open: 'pin', close: 'pin', name: 'name' }
+	//		{ type: 'light', switch: 'pin', name: 'name' }
+	// 	]
+	// }
+	var cmd ={ 'type': 'shutter', 'open': '', 'close': '', 'name': data.name } ;
+	rooms [data.room].push (cmd) ;
+	if ( data.roomid === undefined )
+		data.roomid =data.room.replace (/\W/g, '') ;
+	fs.writeFile (
+		'./data/' + data.roomid + '.json',
+		JSON.stringify (rooms [data.room]),
+		function (err) {
+			if ( cb )
+				cb (err, cmd) ;
+		}
+	) ;
+} ;
+
+var roomAssign =function (data, cb) {
+	// rooms {
+	// 	"Bureau": [
+	//		{ type: 'shutter', open: 'pin', close: 'pin', name: 'name' }
+	//		{ type: 'light', switch: 'pin', name: 'name' }
+	// 	]
+	// }
+	var ids =data.id.split ('-') ;
+	//var keys =Object.keys (rooms) ;
+	//var keysid =keys.map (function (elt) { return (elt.replace (/\W/g, '')) ; }) ;
+	//var room =keys [keysid.indexOf (ids [0])] ;
+	var room =roomNameFromId (ids [0]) ;
+
+	//var names =rooms [room].map (function (elt) { return (elt.name) ; }) ;
+	//var namesid =names.map (function (elt) { return (elt.replace (/\W/g, '')) ; }) ;
+	//var index =namesid.indexOf (ids [1]) ;
+	//var name =names [index] ;
+	var index =roomCmdFromId (room, ids [1]) [0] ;
+
+	rooms [room] [index] [ids [3]] =data.pin ;
+
+	fs.writeFile (
+		'./data/' + ids [0] + '.json',
+		JSON.stringify (rooms [room]),
+		function (err) {
+			if ( cb )
+				cb (err, rooms [room] [index]) ;
+		}
+	) ;
+} ;
+
+var roomCmdFromId =function (room, id) {
+	var names =rooms [room].map (function (elt) { return (elt.name) ; }) ;
+	var namesid =names.map (function (elt) { return (elt.replace (/\W/g, '')) ; }) ;
+	var index =namesid.indexOf (id) ;
+	return ([ index, names [index] ]) ;
+} ;
+
+var roomNameFromId =function (id) {
+	var keys =Object.keys (rooms) ;
+	var keysid =keys.map (function (elt) { return (elt.replace (/\W/g, '')) ; }) ;
+	return (keys [keysid.indexOf (id)]) ;
+} ;
+
+var floorNameFromId =function (id) {
+	var keys =Object.keys (floors) ;
+	var keysid =keys.map (function (elt) { return (elt.replace (/\W/g, '')) ; }) ;
+	return (keys [keysid.indexOf (id)]) ;
+} ;
+
 module.exports ={
-	'cmds': function () { return (cmds) ; },
-	'rooms': function () { return (rooms) ; },
+	'DigitalPins': boneimpl.DigitalPins,
 	'floors': function () { return (floors) ; },
-	'DigitalPins': function () { return (DigitalPins) ; }
+	'rooms': function () { return (rooms) ; },
+	'roomCreate': roomCreate,
+	'roomAssign': roomAssign,
+	'floorNameFromId': floorNameFromId,
+	'roomNameFromId': roomNameFromId,
+	'roomCmdFromId': roomCmdFromId
 } ;
