@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plougonvelin</title>
+
+    <link rel="stylesheet" href="/bootstrap-3.3.5/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="/font-awesome-4.2.0/css/font-awesome.min.css" />
+    <link rel="stylesheet" href="/local.css" />
+
+    <script src="/jquery-2.1.4/jquery-2.1.4.min.js"></script>
+    <script src="https://cdn.socket.io/socket.io-1.3.7.js"></script>
+    <script src="/socketio/socketio-stream.js"></script>
+    <script src="/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+    <script src="/knockstrap-1.3.0/knockout-3.3.0.js"></script>
+    <script src="/knockstrap-1.3.0/knockstrap.js"></script>
+
+    <!-- you need to include the shieldui css and js assets in order for the charts to work -->
+    <link rel="stylesheet" href="http://www.shieldui.com/shared/components/latest/css/shieldui-all.min.css" />
+    <link rel="stylesheet" href="http://www.shieldui.com/shared/components/latest/css/light-bootstrap/all.min.css" />
+    <link id="gridcss" rel="stylesheet" href="http://www.shieldui.com/shared/components/latest/css/dark-bootstrap/all.min.css" />
+
+    <script src="http://www.shieldui.com/shared/components/latest/js/shieldui-all.min.js"></script>
+    <script src="http://www.prepbootstrap.com/Content/js/gridData.js"></script>
+
+    <script src="/app.js"></script>
+</head>
+
+<body>
+<!-- video id ="video" /-->
+<script>
+//function successCallback(localMediaStream) {
+//    window.stream = localMediaStream;
+//    var video = document.querySelector("video");
+//    video.src = window.URL.createObjectURL(localMediaStream);
+//    video.play();
+//}
+//
+//function errorCallback(error){
+//    console.log("navigator.getUserMedia error: ", error);
+//}
+//
+//navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
+//navigator.getUserMedia({video: true}, successCallback, errorCallback);
+</script>
+
+
+<!-- video id="localVideo" autoplay></video>
+<video id="remoteVideo" autoplay></video>
+<button id="callButton">Make a call</button -->
+
+<script>
+//var localStream, localPeerConnection, remotePeerConnection;
+//var localVideo = document.getElementById("localVideo");
+//var remoteVideo = document.getElementById("remoteVideo");
+//
+//function successCallback(stream){
+//    localVideo.src = URL.createObjectURL(stream);
+//    localStream = stream;
+//    callButton.disabled = false;
+//}
+//
+//function errorCallback(error){
+//    console.log("navigator.getUserMedia error: ", error);
+//}
+//
+//navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
+//navigator.getUserMedia({audio:true, video:true}, successCallback, errorCallback);
+//
+//var callButton = document.getElementById("callButton");
+//callButton.disabled = true;
+//callButton.onclick = call;
+//function call() {
+//    callButton.disabled = true;
+//
+//    if (localStream.getVideoTracks().length > 0) {
+//        console.log('Using video device: ' + localStream.getVideoTracks()[0].label);
+//    }
+//    if (localStream.getAudioTracks().length > 0) {
+//        console.log('Using audio device: ' + localStream.getAudioTracks()[0].label);
+//    }
+//
+//    var servers = null;
+//
+//    localPeerConnection = new webkitRTCPeerConnection(servers);
+//    console.log(localPeerConnection)
+//    console.log("Created local peer connection object localPeerConnection");
+//    localPeerConnection.onicecandidate = gotLocalIceCandidate;
+//
+//    remotePeerConnection = new webkitRTCPeerConnection(servers);
+//    console.log("Created remote peer connection object remotePeerConnection");
+//    remotePeerConnection.onicecandidate = gotRemoteIceCandidate;
+//    remotePeerConnection.onaddstream = gotRemoteStream;
+//
+//    localPeerConnection.addStream(localStream);
+//    console.log("Added localStream to localPeerConnection");
+//    localPeerConnection.createOffer(gotLocalDescription);
+//}
+//
+//function gotLocalDescription(description){
+//    localPeerConnection.setLocalDescription(description);
+//    console.log("Offer from localPeerConnection: \n" + description.sdp);
+//    remotePeerConnection.setRemoteDescription(description);
+//    remotePeerConnection.createAnswer(gotRemoteDescription);
+//}
+//
+//function gotRemoteDescription(description){
+//    remotePeerConnection.setLocalDescription(description);
+//    console.log("Answer from remotePeerConnection: \n" + description.sdp);
+//    localPeerConnection.setRemoteDescription(description);
+//}
+//
+//function gotRemoteStream(event){
+//    remoteVideo.src = URL.createObjectURL(event.stream);
+//    console.log("Received remote stream");
+//}
+//
+//function gotLocalIceCandidate(event){
+//    if (event.candidate) {
+//        remotePeerConnection.addIceCandidate(new RTCIceCandidate(event.candidate));
+//        console.log("Local ICE candidate: \n" + event.candidate.candidate);
+//    }
+//}
+//
+//function gotRemoteIceCandidate(event){
+//    if (event.candidate) {
+//        localPeerConnection.addIceCandidate(new RTCIceCandidate(event.candidate));
+//        console.log("Remote ICE candidate: \n " + event.candidate.candidate);
+//    }
+//}
+</script>
+
+<!--video id="cam1" controls>
+    <source src="rtsp://cyrille:tZxuigo0@192.168.1.56:88/videoMain" type="video/mp4" />
+</video-->
+
+<!--video controls style="width:640px;height:360px;" src="/testvideo" type="video/mp4">
+
+</video-->
+
+<!-- opt1 -->
+<img id="img">
+
+<!-- opt2 canvas id="videostream" width="640" height="480" style="border:solid;"></canvas -->
+
+
+</body>
+</html>

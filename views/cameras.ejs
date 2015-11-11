@@ -1,0 +1,33 @@
+
+<%- include html.ejs %>
+<body>
+    <%- include header.ejs %>
+
+    <canvas id="cam1" />
+
+    <script>
+        //var client, player ;
+        $(document).ready (function () {
+//            var client = new Websocket ('ws://localhost:8002');
+//            var player = new jsmpeg (client, {
+//                'canvas': $('#cam1') [0],
+//                'seekable': false,
+//                'onload': function (player) {
+//                    console.log ('Loaded player ', player) ;
+//                }
+//            }) ;
+//
+//            player.play () ;
+
+            // If you don't use 'autoplay' and don't explicitly call .play(), you can get individual
+            // video frames (a canvas element) like so:
+            //var frame =null ;
+            //while ( (frame =player.nextFrame ()) ) {
+            //    someOtherCanvasContext.drawImage (frame, 0, 0) ;
+            //}
+        }) ;
+    </script>
+
+    <%- include footer.ejs %>
+</body>
+</html>

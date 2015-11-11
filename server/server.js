@@ -22,8 +22,8 @@ var express =require ('express') ;
 var request =require ('request') ;
 var bodyParser =require ('body-parser') ;
 var favicon =require ('serve-favicon') ;
-//var logger =require ('morgan') ;
 var async =require ('async') ;
+var io =require ('socket.io-client') ;
 var boneimpl =require ('./boneimpl') ;
 
 // http://garann.github.io/template-chooser/
@@ -31,7 +31,7 @@ var app =express () ;
 app.use (bodyParser.urlencoded ({ extended: false })) ;
 app.use (bodyParser.json ()) ;
 //app.use (logger ('dev')) ;
-//app.use (favicon (__dirname + '/../www/favicon.ico')) ;
+app.use (favicon (__dirname + '/../www/favicon.ico')) ;
 app.use (express.static (__dirname + '/../www')) ;
 app.set ('view engine', 'ejs') ;
 app.use ('/', require ('./pages')) ;
@@ -125,6 +125,52 @@ app.get ('/floor/:floorid/:cmd', function (req, res) {
 	floorCentral (floorid, cmd, null) ;
 	res.end () ;
 }) ;
+
+//- IO
+var io =require ('socket.io-client') ;
+var socket =io.connect ('http://localhost:8002', { reconnect: true }) ;
+
+socket.on ('connect', function () {
+	console.log ('bbb gain connection with heroku') ;
+	var defs ={
+		'DigitalPins': housedef.DigitalPins (),
+		'floors': housedef.floors (),
+		'rooms': housedef.rooms ()
+	} ;
+	socket.emit ('definitions', defs) ;
+}) ;
+
+socket.on ('disconnect', function () { // Since we are auto-reconnect, we're ok :)
+	console.log ('bbb lost connection to heroku') ;
+}) ;
+
+socket.on ('refresh', function (data) { // Should not be called in theory
+	console.log ('refresh') ;
+}) ;
+
+socket.on ('roomShutterCommand', function (data) {
+	console.log ('roomShutterCommand') ;
+	roomShutterCommand (data.roomid, data.nameid, data.cmd, function (ret) {
+		socket.emit ('roomShutterCommandCompleted', data) ;
+	}) ;
+}) ;
+
+socket.on ('roomCentral', function (data) {
+	console.log ('roomCentral') ;
+	roomCentral (data.roomid, data.cmd, function (ret) {
+		socket.emit ('roomCentralCompleted', data) ;
+	}) ;
+}) ;
+
+socket.on ('floorCentral', function (data) {
+	console.log ('floorCentral') ;
+	floorCentral (data.floorid, data.cmd, function (ret) {
+		socket.emit ('floorCentralCompleted', data) ;
+	}) ;
+}) ;
+
+// Sensors
+var sensors =require ('./sensors') ;
 
 //- Setup
 app.post ('/setup/create', function (req, res) {

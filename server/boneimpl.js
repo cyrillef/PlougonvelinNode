@@ -20,17 +20,21 @@
 //
 var express =require ('express') ;
 var fs =require ('fs') ;
+console.log (process.platform === 'linux' ? 'beaglebone initialization' : 'bbb fake API loading' ) ;
 var bonescript =(process.platform === 'linux' ?
 	  require ('bonescript')
 	: {
 		'pinMode': function (pin, inout, mode, pulltype, speed, cb) {
 			if ( cb )
-				cb ('') ;
+				cb ({ 'value': true }) ;
 		},
 		'digitalWrite': function (pin, value, cb) {
 			if ( cb )
-				cb ('') ;
-		}
+				cb ({ 'value': true }) ;
+		},
+		'LOW': 0,
+		'HIGH': 1,
+		'OUTPUT': 7
 	  }
 ) ;
 
@@ -42,16 +46,21 @@ var initPins =function () {
 	for ( var p =0 ; p < DigitalPins.length ; p++ ) {
 		var pin =DigitalPins [p] ;
 		bonescript.pinMode (pin, bonescript.OUTPUT, 7, 'pullup', 'fast', function (pinR) {
-			bonescript.digitalWrite (pin, bonescript.HIGH) ;
+			//console.log ('err = ' + pinR.err) ;
+			bonescript.digitalWrite (pin, bonescript.HIGH, function (pinR2) {
+				//console.log ('err = ' + pingR2.err) ;
+			}) ;
 		}) ;
 	}
 } ;
 
 var triggerShutter =function (shutter, repeat, cb) {
 	bonescript.digitalWrite (shutter, bonescript.LOW, function (pinR) {
+		//console.log ('err = ' + pinR.err) ;
 		setTimeout (
 			function () {
-				bonescript.digitalWrite (shutter, bonescript.HIGH, function (pinR) {
+				bonescript.digitalWrite (shutter, bonescript.HIGH, function (pinR2) {
+					//console.log ('err = ' + pinR2.err) ;
 					if ( repeat > 1 )
 						setTimeout (function () {
 							triggerShutter (shutter, repeat - 1, cb) ;
