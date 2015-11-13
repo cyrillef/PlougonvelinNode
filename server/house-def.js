@@ -23,7 +23,7 @@ var request =require ('request') ;
 var fs =require ('fs') ;
 var boneimpl =require ('./boneimpl') ;
 
-var floors ={}, rooms ={} ;
+var floors ={}, rooms ={}, viewer ={}, sensors ={} ;
 // rooms {
 // 	"Bureau": [
 //		{ type: 'shutter', open: 'pin', close: 'pin', name: 'name' }
@@ -55,6 +55,19 @@ var init =function () {
 			roomLoad (room) ;
 		}
 	}) ;
+
+    fs.readFile ('./data/viewer.json', function (err, data) {
+        if ( err )
+            return (console.log ('Cannot read viewer definition file')) ;
+        viewer =JSON.parse (data) ;
+    }) ;
+
+    fs.readFile ('./data/sensors.json', function (err, data) {
+        if ( err )
+            return (console.log ('Cannot read sensors definition file')) ;
+        sensors =JSON.parse (data) ;
+    }) ;
+
 } ;
 init () ;
 
@@ -133,6 +146,9 @@ module.exports ={
 	'DigitalPins': boneimpl.DigitalPins,
 	'floors': function () { return (floors) ; },
 	'rooms': function () { return (rooms) ; },
+    'viewer': function () { return (viewer) ; },
+    'sensors': function () { return (sensors) ; },
+
 	'roomCreate': roomCreate,
 	'roomAssign': roomAssign,
 	'floorNameFromId': floorNameFromId,

@@ -22,6 +22,7 @@ var express =require ('express') ;
 var mqtt =require ('mqtt') ;
 var SensorTag =require ('sensortag') ;
 var sensorsData =require ('./sensorsDB').SensorsData ;
+var socketIO =require ('./socket-connection') ;
 
 var periods ={
     'irTemperature': 10 * 1000,
@@ -137,21 +138,23 @@ var periods ={
 var Client =require ("ibmiotf").IotfDevice ;
 var config ={
     "org": "oqadgn",
-    "id": "c6716393301a",
+    "id": "c6716393301a", // c4be8471058b (address)
     "type": "SensorTag",
     "auth-method": "token",
     "auth-token": "C1Lq)zE+UH2+tx9Wq?"
 } ;
 var deviceClient =new Client (config) ;
-deviceClient.connect () ;
+//deviceClient.connect () ;
 deviceClient.on ("connect", function () {
     //console.log ("deviceClient connect") ;
 }) ;
 
+// c4be84706d89
+
 var newSensorRecord =function (sensorTag, what, values) {
     new sensorsData (
         {
-            'sensorId': sensorTag.id,
+            'sensorId': sensorTag.address.replace (/\W/g, ''), //sensorTag.id,
             //'when': 'use default Date.now definition',
             'what': what,
             'values': values //JSON.stringify (values)
@@ -194,9 +197,40 @@ SensorTag.discoverAll (function (sensorTag) {
             //tagData.publish () ;
             if ( deviceClient.isConnected )
                 deviceClient.publish ("status", "json", '{"d" : { "objectTemperature" : ' + objectTemperature + ', "ambientTemperature" : ' + ambientTemperature + ' }}') ;
+
+            socketIO.emit (
+                'sensorData',
+                {
+                    'sensorid': sensorTag.address.replace (/\W/g, ''),
+                    'name': 'irTemperature',
+                    'payload': { 'objectTemperature': objectTemperature, 'ambientTemperature': ambientTemperature }
+                }) ;
         }) ;
 
         // Accelerometer
+        sensorTag.enableAccelerometer (function (error) {}) ;
+        sensorTag.setAccelerometerPeriod (periods.accelerometer, function (error) {}) ;
+        //sensorTag.readAccelerometer (function (error, x, y, z) {}) ;
+        sensorTag.notifyAccelerometer (function (error) {}) ;
+        sensorTag.on ('accelerometerChange', function (x, y, z) {
+            //console.log ('humidityChange ' + temperature + ' / ' + humidity) ;
+            newSensorRecord (
+                sensorTag, 'accelerometer',
+                { 'x': x, 'y': y, 'z': z }
+            ) ;
+
+            if ( deviceClient.isConnected )
+                deviceClient.publish ("status", "json", '{"d" : { "x" : ' + x + ', "y" : ' + y + ', "z" : ' + z + ' }}') ;
+
+            socketIO.emit (
+                'sensorData',
+                {
+                    'sensorid': sensorTag.address.replace (/\W/g, ''),
+                    'name': 'accelerometer',
+                    'payload': { 'x': x, 'y': y, "z": z }
+                }) ;
+        }) ;
+
         // Gyroscope
 
         // Humidity Sensor
@@ -215,11 +249,65 @@ SensorTag.discoverAll (function (sensorTag) {
             //tagData.publish () ;
             if ( deviceClient.isConnected )
                 deviceClient.publish ("status", "json", '{"d" : { "temperature" : ' + temperature + ', "humidity" : ' + humidity + ' }}') ;
+
+            socketIO.emit (
+                'sensorData',
+                {
+                    'sensorid': sensorTag.address.replace (/\W/g, ''),
+                    'name': 'humidity',
+                    'payload': { 'temperature': temperature, 'humidity': humidity }
+                }) ;
         }) ;
 
         // Magnetometer
         // Barometric Pressure Sensor
+        sensorTag.enableBarometricPressure (function (error) {}) ;
+        sensorTag.setBarometricPressurePeriod (periods.barometricPressure, function (error) {}) ;
+        //sensorTag.readBarometricPressure (function (error, pressure) {}) ;
+        sensorTag.notifyBarometricPressure (function (error) {}) ;
+        sensorTag.on ('barometricPressureChange', function (pressure) {
+            //console.log ('barometricPressureChange ' + lux) ;
+            newSensorRecord (
+                sensorTag, 'barometricPressure',
+                { 'pressure': pressure }
+            ) ;
+
+            if ( deviceClient.isConnected )
+                deviceClient.publish ("status", "json", '{"d" : { "pressure" : ' + pressure + ' }}') ;
+
+            socketIO.emit (
+                'sensorData',
+                {
+                    'sensorid': sensorTag.address.replace (/\W/g, ''),
+                    'name': 'barometricPressure',
+                    'payload': { 'pressure': pressure }
+                }) ;
+        }) ;
+
         // Luxometer (CC2650 only)
+        sensorTag.enableLuxometer (function (error) {}) ;
+        sensorTag.setLuxometerPeriod (periods.luxometer, function (error) {}) ;
+        //sensorTag.readLuxometer (function (error, lux) {}) ;
+        sensorTag.notifyLuxometer (function (error) {}) ;
+        sensorTag.on ('luxometerChange', function (lux) {
+            //console.log ('luxometerChange ' + lux) ;
+            newSensorRecord (
+                sensorTag, 'luxometer',
+                { 'lux': lux }
+            ) ;
+
+            if ( deviceClient.isConnected )
+                deviceClient.publish ("status", "json", '{"d" : { "lux" : ' + lux + ' }}') ;
+
+            socketIO.emit (
+                'sensorData',
+                {
+                    'sensorid': sensorTag.address.replace (/\W/g, ''),
+                    'name': 'luxometer',
+                    'payload': { 'lux': lux }
+                }) ;
+        }) ;
+
         // IO
         // Simple Key
     }) ;
