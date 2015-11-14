@@ -23,7 +23,7 @@ var request =require ('request') ;
 var fs =require ('fs') ;
 var boneimpl =require ('./boneimpl') ;
 
-var floors ={}, rooms ={}, viewer ={}, sensors ={} ;
+var floors ={}, rooms ={}, viewer ={}, sensors ={}, cameras ={} ;
 // rooms {
 // 	"Bureau": [
 //		{ type: 'shutter', open: 'pin', close: 'pin', name: 'name' }
@@ -67,6 +67,12 @@ var init =function () {
             return (console.log ('Cannot read sensors definition file')) ;
         sensors =JSON.parse (data) ;
     }) ;
+
+	fs.readFile ('./data/cameras.json', function (err, data) {
+		if ( err )
+			return (console.log ('Cannot read cameras definition file')) ;
+		cameras =JSON.parse (data) ;
+	}) ;
 
 } ;
 init () ;
@@ -148,6 +154,7 @@ module.exports ={
 	'rooms': function () { return (rooms) ; },
     'viewer': function () { return (viewer) ; },
     'sensors': function () { return (sensors) ; },
+	'cameras': function () { return (cameras) ; },
 
 	'roomCreate': roomCreate,
 	'roomAssign': roomAssign,

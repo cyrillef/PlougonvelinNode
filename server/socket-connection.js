@@ -33,7 +33,8 @@ socket.on ('connect', function () {
         'floors': housedef.floors (),
         'rooms': housedef.rooms (),
         'viewer': housedef.viewer (),
-        'sensors': housedef.sensors ()
+        'sensors': housedef.sensors (),
+		'cameras': housedef.cameras ()
     } ;
     socket.emit ('definitions', defs) ;
 }) ;
