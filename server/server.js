@@ -43,7 +43,7 @@ app.get ('/room/:roomid/:nameid/:cmd', function (req, res) {
 	var roomid =req.params.roomid ;
 	var nameid =req.params.nameid ;
 	var cmd =req.params.cmd ;
-    houseCmds.roomShutterCommand (roomid, nameid, cmd, null) ;
+	houseCmds.roomShutterCommand (roomid, nameid, cmd, null) ;
 	res.end () ;
 }) ;
 

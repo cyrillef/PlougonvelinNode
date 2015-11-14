@@ -19,6 +19,7 @@
 // UNINTERRUPTED OR ERROR FREE.
 //
 var express =require ('express') ;
+var async =require ('async') ;
 var boneimpl =require ('./boneimpl') ;
 var housedef =require ('./house-def') ;
 
@@ -29,7 +30,6 @@ var shutterCommand =function (shutter, cmd, cb) {
             cb (shutter) ;
         return ;
     }
-    //console.log (cmd + ' "' + pin + '"') ;
     var repeat =(cmd === 'half' ? 2 : 1) ;
     boneimpl.triggerShutter (pin, repeat, cb) ;
 } ;
@@ -42,6 +42,7 @@ var roomShutterCommand =function (roomid, nameid, cmd, cb) {
     //shutterCommand (results [0], cmd, cb) ;
     var index =housedef.roomCmdFromId (room, nameid) [0] ;
     var shutter =shutters [index] ;
+	//console.log (index+ ' ' +shutter) ;
     shutterCommand (shutter, cmd, cb) ;
 } ;
 

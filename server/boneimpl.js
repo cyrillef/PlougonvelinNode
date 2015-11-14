@@ -55,6 +55,7 @@ var initPins =function () {
 } ;
 
 var triggerShutter =function (shutter, repeat, cb) {
+	//console.log ('triggerShutter' + shutter) ;
 	bonescript.digitalWrite (shutter, bonescript.LOW, function (pinR) {
 		//console.log ('err = ' + pinR.err) ;
 		setTimeout (

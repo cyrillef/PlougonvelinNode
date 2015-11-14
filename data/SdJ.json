@@ -1,1 +1,20 @@
-[{"type":"shutter","open":"P8_7","close":"P8_9","name":"Nord"},{"type":"shutter","open":"P8_14","close":"P8_12","name":"Est"},{"type":"shutter","open":"P8_10","close":"P8_8","name":"Sud"}]
+[
+	{
+		"type": "shutter",
+		"open": "P8_35",
+		"close": "P8_31",
+		"name": "Nord"
+	},
+	{
+		"type": "shutter",
+		"open": "P8_38",
+		"close": "P8_37",
+		"name": "Est"
+	},
+	{
+		"type": "shutter",
+		"open": "P8_33",
+		"close": "P8_36",
+		"name": "Sud"
+	}
+]
