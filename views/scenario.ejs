@@ -29,7 +29,7 @@
                         $('#<%= name %>').click (function (evt) {
                             evt.stopPropagation () ;
                             $.ajax ({
-                                url: 'http://' + window.location.host + '/scenario/<%= name %>',
+                                url: window.location.protocol + '//' + window.location.host + '/scenario/<%= name %>',
                                 type: 'get',
                                 //data: JSON.stringify ({}),
                                 //contentType: 'application/json',
