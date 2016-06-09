@@ -21,7 +21,7 @@
 var socket =null ;
 
 $(document).ready (function () {
-	//var socket =io.connect ('http://' +  window.location.host + ':' + window.location.port) ;
+	//var socket =io.connect (window.location.location + '//' +  window.location.host + ':' + window.location.port) ;
 	//socket =io () ;
 	//
 	//socket.on ('connect', function (data) {
